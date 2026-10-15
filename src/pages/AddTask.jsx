@@ -20,12 +20,12 @@ const timeOptions = [
 ];
 
 const categoryOptions = [
-  { value: 'homework', label: '📝 การบ้าน' },
-  { value: 'report', label: '📄 รายงาน' },
-  { value: 'presentation', label: '🎤 Presentation' },
-  { value: 'exam', label: '📚 สอบ' },
-  { value: 'project', label: '💻 Project' },
-  { value: 'other', label: '📌 อื่นๆ' },
+  { value: 'homework', label: ' การบ้าน' },
+  { value: 'report', label: ' รายงาน' },
+  { value: 'presentation', label: ' Presentation' },
+  { value: 'exam', label: ' สอบ' },
+  { value: 'project', label: ' Project' },
+  { value: 'other', label: ' อื่นๆ' },
 ];
 
 const difficultyOptions = [

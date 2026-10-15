@@ -1,6 +1,5 @@
 import { useApp } from '../context/AppContext';
 import { CheckCircle2, Clock, AlertTriangle, TrendingUp, BookOpen, Zap, Star, Flame } from 'lucide-react';
-import ActivityHeatmap from '../components/ActivityHeatmap';
 
 // คำนวณ streak จาก completed tasks
 function calcStreak(tasks) {
@@ -157,11 +156,6 @@ export default function Dashboard() {
           ))}
         </div>
       )}
-
-      {/* Activity Heatmap */}
-      <div style={{ marginBottom: '20px' }}>
-        <ActivityHeatmap tasks={tasks} />
-      </div>
 
       {/* Top Tasks */}
       <div>

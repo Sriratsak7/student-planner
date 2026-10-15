@@ -8,7 +8,7 @@ import TimerPage from './pages/TimerPage';
 import CoursePlanner from './pages/CoursePlanner';
 import SkillReport from './pages/SkillReport';
 import AddCourse from './pages/AddCourse';
-import { Wifi, BookMarked } from 'lucide-react';
+import { BookMarked } from 'lucide-react';
 
 export default function App() {
   return (
@@ -32,37 +32,6 @@ export default function App() {
             boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
             borderRadius: '40px',
           }}>
-            {/* Status bar */}
-            <div style={{
-              background: '#3d2c1e',
-              padding: '12px 20px 8px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}>9:41</span>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: '3px' }}>
-                  {[1,2,3,4].map(i => (
-                    <div key={i} style={{
-                      width: '3px', height: `${4 + i * 2}px`,
-                      background: '#fff', borderRadius: '1px', opacity: i <= 3 ? 1 : 0.3
-                    }} />
-                  ))}
-                </div>
-                <Wifi size={14} color="#fff" />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                  <div style={{
-                    width: '22px', height: '11px', borderRadius: '2px',
-                    border: '1.5px solid rgba(255,255,255,0.6)',
-                    padding: '1px', display: 'flex', alignItems: 'center'
-                  }}>
-                    <div style={{ width: '70%', height: '100%', background: '#4caf50', borderRadius: '1px' }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* App header */}
             <div style={{
               background: '#3d2c1e',
