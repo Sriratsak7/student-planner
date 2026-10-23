@@ -3,8 +3,8 @@ import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Play, CheckCircle2, Star, Timer, X, Clock, AlertTriangle, Flame, Zap, Lightbulb } from 'lucide-react';
 import { t } from '../utils/theme';
-import { BottomSheet, IOSButton, AnimatedList } from '../components/Motion';
-import { spring, easeIOS, dur } from '../utils/motion';
+import { BottomSheet, IOSButton } from '../components/Motion';
+import { easeIOS, dur } from '../utils/motion';
 
 const priorityColor = { high: t.danger, medium: t.warning, low: t.success };
 const priorityLabel = { high: 'สูง', medium: 'กลาง', low: 'ต่ำ' };
@@ -218,24 +218,15 @@ export default function TaskPriority() {
         const isOverdue = days < 0 && task.status === 'pending';
         const isUrgent = days <= 1 && task.status === 'pending';
         const reasons = task.status === 'pending' ? getPriorityReason(task, i) : [];
-        const [cardPressed, setCardPressed] = useState(false);
 
         return (
-          <div key={task.id}
-            onMouseDown={() => setCardPressed(true)}
-            onMouseUp={() => setCardPressed(false)}
-            onMouseLeave={() => setCardPressed(false)}
-            onTouchStart={() => setCardPressed(true)}
-            onTouchEnd={() => setCardPressed(false)}
-            style={{
-              background: task.status === 'completed' ? t.cardLight : t.card,
-              border: `1.5px solid ${isOverdue ? t.dangerBorder : isUrgent ? t.warningBorder : t.border}`,
-              borderRadius: '14px', padding: '14px', marginBottom: '10px',
-              opacity: task.status === 'completed' ? 0.6 : 1,
-              transition: `transform ${dur.fast}ms ${spring}, box-shadow ${dur.fast}ms ${easeIOS}`,
-              transform: cardPressed ? 'scale(0.985)' : 'scale(1)',
-              boxShadow: cardPressed ? 'none' : '0 2px 8px rgba(0,0,0,0.15)',
-            }}>
+          <div key={task.id} style={{
+            background: task.status === 'completed' ? t.cardLight : t.card,
+            border: `1.5px solid ${isOverdue ? t.dangerBorder : isUrgent ? t.warningBorder : t.border}`,
+            borderRadius: '14px', padding: '14px', marginBottom: '10px',
+            opacity: task.status === 'completed' ? 0.6 : 1,
+            transition: `border-color ${dur.normal}ms ${easeIOS}`,
+          }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
               {task.status === 'pending' && (
                 <div style={{

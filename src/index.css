@@ -1,138 +1,81 @@
-/* ─── Reset ──────────────────────────────────────────────── */
 *, *::before, *::after {
   margin: 0; padding: 0; box-sizing: border-box;
 }
 
-/* ─── Body ───────────────────────────────────────────────── */
 body {
   font-family: -apple-system, 'SF Pro Display', 'Inter', 'Segoe UI', 'Noto Sans Thai', sans-serif;
   background: #07090f;
   color: #eef2ff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
   min-height: 100vh;
-  /* iOS momentum scroll */
-  -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
 }
 
-/* ─── Remove tap highlight on mobile ─────────────────────── */
-* {
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-}
+/* ── No tap flash on mobile ──────────────────────────────── */
+* { -webkit-tap-highlight-color: transparent; }
 
-/* Allow text selection where needed */
-p, span, h1, h2, h3, h4, input, textarea {
+/* ── Allow text selection ────────────────────────────────── */
+p, h1, h2, h3, h4, input, textarea {
   -webkit-user-select: text;
   user-select: text;
 }
 
-/* ─── Scrollbar ───────────────────────────────────────────── */
+/* ── Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #1c2840; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
 
-/* ─── Form elements ───────────────────────────────────────── */
+/* ── Forms ───────────────────────────────────────────────── */
 button, input, textarea, select { font-family: inherit; }
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
 
-/* ─── iOS-style spring cubic-bezier ──────────────────────── */
-/* Apple uses a custom spring, closest CSS equivalent: */
-:root {
-  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);   /* overshoot spring */
-  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --ease-ios: cubic-bezier(0.23, 1, 0.32, 1);     /* fast-out smooth */
-  --duration-fast: 120ms;
-  --duration-normal: 220ms;
-  --duration-slow: 360ms;
-}
-
-/* ─── Buttons — iOS tap feel ──────────────────────────────── */
+/* ── Buttons — subtle press, no delay ───────────────────── */
 button {
   cursor: pointer;
-  transition:
-    transform var(--duration-fast) var(--spring),
-    opacity   var(--duration-fast) var(--ease-out),
-    background var(--duration-normal) var(--ease-ios),
-    box-shadow var(--duration-normal) var(--ease-ios);
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
+  transition: opacity 100ms ease, transform 100ms ease;
+}
+button:active { opacity: 0.75; transform: scale(0.97); }
+button:disabled { cursor: not-allowed; }
+
+/* ── Scroll containers — iOS momentum ───────────────────── */
+.scroll-y {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
 }
 
-button:active {
-  transform: scale(0.94);
-  opacity: 0.85;
-}
+/* ── Hide scrollbar, keep scroll ────────────────────────── */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
-/* Larger tap targets on mobile */
-@media (max-width: 768px) {
-  button { min-height: 36px; }
-}
-
-/* ─── Cards — hover lift on desktop, press on mobile ─────── */
-.card {
-  transition:
-    transform var(--duration-normal) var(--spring),
-    box-shadow var(--duration-normal) var(--ease-ios),
-    border-color var(--duration-normal) var(--ease-ios);
-}
-.card:hover  { transform: translateY(-2px); }
-.card:active { transform: scale(0.98); }
-
-/* ─── Page transition wrapper ────────────────────────────── */
-.page-enter {
-  animation: pageEnter var(--duration-slow) var(--ease-ios) forwards;
-}
-@keyframes pageEnter {
-  from { opacity: 0; transform: translateY(12px) scale(0.99); }
-  to   { opacity: 1; transform: translateY(0)    scale(1);    }
-}
-
-/* ─── Slide up (modals, sheets) ──────────────────────────── */
-.sheet-enter {
-  animation: sheetEnter var(--duration-slow) var(--spring) forwards;
-}
-@keyframes sheetEnter {
-  from { transform: translateY(100%); opacity: 0.4; }
-  to   { transform: translateY(0);    opacity: 1;   }
-}
-
-/* ─── Fade in with lift (cards, messages) ────────────────── */
+/* ── Fade in — only for chat messages ───────────────────── */
 .fade-in {
-  animation: fadeIn var(--duration-normal) var(--ease-ios) forwards;
+  animation: fadeIn 200ms ease forwards;
 }
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0);   }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Staggered children (lists) ─────────────────────────── */
-.stagger > * { animation: fadeIn var(--duration-normal) var(--ease-ios) both; }
-.stagger > *:nth-child(1) { animation-delay: 0ms;  }
-.stagger > *:nth-child(2) { animation-delay: 40ms; }
-.stagger > *:nth-child(3) { animation-delay: 80ms; }
-.stagger > *:nth-child(4) { animation-delay: 120ms;}
-.stagger > *:nth-child(5) { animation-delay: 160ms;}
-.stagger > *:nth-child(6) { animation-delay: 200ms;}
-.stagger > *:nth-child(n+7){ animation-delay: 240ms;}
-
-/* ─── Pulse dot (timer online indicator) ─────────────────── */
-@keyframes pulse {
-  0%, 100% { opacity: 1;   transform: scale(1);   }
-  50%       { opacity: 0.5; transform: scale(1.35); }
-}
-
-/* ─── Chat typing dots ───────────────────────────────────── */
+/* ── Bounce dots (chat typing) ──────────────────────────── */
 @keyframes bounce {
   0%, 80%, 100% { transform: translateY(0); }
-  40%           { transform: translateY(-7px); }
+  40%           { transform: translateY(-6px); }
 }
 
-/* ─── Shimmer skeleton ───────────────────────────────────── */
+/* ── Pulse (timer dot) ───────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%       { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* ── Shimmer skeleton ────────────────────────────────────── */
 @keyframes shimmer {
   0%   { background-position: -400px 0; }
   100% { background-position:  400px 0; }
@@ -143,33 +86,7 @@ button:active {
   animation: shimmer 1.6s infinite;
 }
 
-/* ─── Spring scale (for toggle / checkbox) ───────────────── */
-@keyframes springPop {
-  0%   { transform: scale(0.7);  }
-  60%  { transform: scale(1.15); }
-  100% { transform: scale(1);    }
-}
-.spring-pop { animation: springPop 300ms var(--spring) forwards; }
-
-/* ─── Scroll containers ───────────────────────────────────── */
-.scroll-smooth {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  overscroll-behavior: contain;
-}
-
-/* ─── No scrollbar but scrollable ────────────────────────── */
-.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-
-/* ─── Input focus ─────────────────────────────────────────── */
-input:focus, textarea:focus, select:focus {
-  outline: none;
-  transition: border-color var(--duration-fast) var(--ease-ios),
-              box-shadow   var(--duration-fast) var(--ease-ios);
-}
-
-/* ─── Mesh background ─────────────────────────────────────── */
+/* ── Mesh background ─────────────────────────────────────── */
 .mesh-bg {
   background:
     radial-gradient(ellipse at 15% 15%, rgba(59,130,246,0.07) 0%, transparent 50%),
@@ -177,6 +94,5 @@ input:focus, textarea:focus, select:focus {
     #07090f;
 }
 
-/* ─── Safe area padding (iPhone notch / home bar) ────────── */
+/* ── Safe area (iPhone notch / home bar) ─────────────────── */
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
-.safe-top    { padding-top:    env(safe-area-inset-top, 0px); }

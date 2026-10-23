@@ -10,13 +10,13 @@ import CoursePlanner from './pages/CoursePlanner';
 import SkillReport from './pages/SkillReport';
 import AddCourse from './pages/AddCourse';
 import TaskAnalysis from './pages/TaskAnalysis';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import { t } from './utils/theme';
-import { spring, easeIOS, dur } from './utils/motion';
+import { easeIOS, dur } from './utils/motion';
 
-// ── Responsive breakpoint ────────────────────────────────────
+// ── Desktop breakpoint ───────────────────────────────────────
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   useEffect(() => {
@@ -27,57 +27,27 @@ function useIsDesktop() {
   return isDesktop;
 }
 
-// ── Page transition wrapper — re-mounts on route change ──────
-function AnimatedRoutes() {
-  const location = useLocation();
-  const [displayLoc, setDisplayLoc] = useState(location);
-  const [stage, setStage] = useState('idle'); // idle | exit | enter
-  const prevPath = useRef(location.pathname);
-
-  useEffect(() => {
-    if (location.pathname === prevPath.current) return;
-    prevPath.current = location.pathname;
-
-    // Tiny exit then enter
-    setStage('exit');
-    const t1 = setTimeout(() => {
-      setDisplayLoc(location);
-      setStage('enter');
-    }, 80);
-    const t2 = setTimeout(() => setStage('idle'), 80 + 280);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [location]);
-
-  const style = {
-    transition: `opacity ${dur.normal}ms ${easeIOS}, transform ${dur.normal}ms ${easeIOS}`,
-    opacity:   stage === 'exit' ? 0   : 1,
-    transform: stage === 'exit' ? 'translateY(4px) scale(0.99)'
-             : stage === 'enter' ? 'translateY(4px) scale(0.99)'
-             : 'translateY(0) scale(1)',
-  };
-
+// ── All routes ───────────────────────────────────────────────
+function PageRoutes() {
   return (
-    <div style={style}>
-      <Routes location={displayLoc}>
-        <Route path="/"           element={<Dashboard />} />
-        <Route path="/add-task"   element={<AddTask />} />
-        <Route path="/priority"   element={<TaskPriority />} />
-        <Route path="/timer"      element={<TimerPage />} />
-        <Route path="/planner"    element={<CoursePlanner />} />
-        <Route path="/add-course" element={<AddCourse />} />
-        <Route path="/skills"     element={<SkillReport />} />
-        <Route path="/analysis"   element={<TaskAnalysis />} />
-      </Routes>
-    </div>
+    <Routes>
+      <Route path="/"           element={<Dashboard />} />
+      <Route path="/add-task"   element={<AddTask />} />
+      <Route path="/priority"   element={<TaskPriority />} />
+      <Route path="/timer"      element={<TimerPage />} />
+      <Route path="/planner"    element={<CoursePlanner />} />
+      <Route path="/add-course" element={<AddCourse />} />
+      <Route path="/skills"     element={<SkillReport />} />
+      <Route path="/analysis"   element={<TaskAnalysis />} />
+    </Routes>
   );
 }
 
-// ── Floating timer widget — persists across every page ───────
+// ── Floating timer — shows on every page ────────────────────
 function TimerWidget({ isDesktop }) {
   const { timerState, getTimerElapsed, tasks } = useApp();
   const navigate = useNavigate();
   const [, setTick] = useState(0);
-  const [pressed, setPressed] = useState(false);
 
   useEffect(() => {
     if (!timerState.running) return;
@@ -88,99 +58,79 @@ function TimerWidget({ isDesktop }) {
   const isActive = timerState.running || (timerState.taskId && timerState.elapsedSeconds > 0);
   if (!isActive) return null;
 
-  const task      = tasks.find(tsk => tsk.id === timerState.taskId);
-  const elapsed   = getTimerElapsed();
-  const isPaused  = !timerState.running && timerState.elapsedSeconds > 0;
-  const widgetBg  = isPaused
+  const task     = tasks.find(tsk => tsk.id === timerState.taskId);
+  const elapsed  = getTimerElapsed();
+  const isPaused = !timerState.running && timerState.elapsedSeconds > 0;
+
+  const bg = isPaused
     ? `linear-gradient(135deg, ${t.warning}, #d97706)`
     : t.accentGrad2;
 
   const fmt = (s) => {
-    const h = Math.floor(s / 3600).toString().padStart(2, '0');
-    const m = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
+    const h   = Math.floor(s / 3600).toString().padStart(2, '0');
+    const m   = Math.floor((s % 3600) / 60).toString().padStart(2, '0');
     const sec = (s % 60).toString().padStart(2, '0');
     return `${h}:${m}:${sec}`;
   };
 
-  const pressH = {
-    onMouseDown:  () => setPressed(true),
-    onMouseUp:    () => setPressed(false),
-    onMouseLeave: () => setPressed(false),
-    onTouchStart: () => setPressed(true),
-    onTouchEnd:   () => setPressed(false),
-  };
-
-  const commonStyle = {
-    background: widgetBg,
-    display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
-    transition: `transform ${dur.fast}ms ${spring}, box-shadow ${dur.normal}ms ${easeIOS}`,
-    transform: pressed ? 'scale(0.96)' : 'scale(1)',
+  const sharedStyle = {
+    background: bg, cursor: 'pointer',
+    display: 'flex', alignItems: 'center', gap: 12,
+    boxShadow: isPaused
+      ? '0 6px 22px rgba(245,158,11,0.35)'
+      : '0 6px 22px rgba(59,130,246,0.35)',
   };
 
   if (isDesktop) {
     return (
-      <div
-        onClick={() => navigate('/timer')}
-        {...pressH}
-        style={{
-          ...commonStyle,
-          position: 'fixed', bottom: '24px', right: '24px', zIndex: 999,
-          borderRadius: '16px', padding: '12px 18px', maxWidth: '320px',
-          boxShadow: isPaused
-            ? '0 8px 28px rgba(245,158,11,0.4)'
-            : '0 8px 28px rgba(59,130,246,0.4)',
-        }}
-      >
-        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Clock size={18} color="#fff" />
+      <div onClick={() => navigate('/timer')} style={{
+        ...sharedStyle,
+        position: 'fixed', bottom: 24, right: 24, zIndex: 999,
+        borderRadius: 16, padding: '12px 18px', maxWidth: 320,
+      }}>
+        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Clock size={17} color="#fff" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>
+          <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>
             {isPaused ? 'หยุดชั่วขณะ' : 'กำลังจับเวลา'}
           </p>
-          <p style={{ margin: '2px 0 0', fontSize: '13px', fontWeight: '700', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {task?.title || 'ไม่ทราบชื่อ'}
           </p>
         </div>
-        <span style={{ fontSize: '18px', fontWeight: '800', color: '#fff', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+        <span style={{ fontSize: 17, fontWeight: 800, color: '#fff', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
           {fmt(elapsed)}
         </span>
-        {isPaused && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>⏸</span>}
+        {isPaused && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>⏸</span>}
       </div>
     );
   }
 
   return (
-    <div
-      onClick={() => navigate('/timer')}
-      {...pressH}
-      style={{
-        ...commonStyle,
-        position: 'fixed',
-        bottom: 'calc(60px + env(safe-area-inset-bottom, 0px) + 8px)',
-        left: '50%', transform: pressed ? 'translateX(-50%) scale(0.96)' : 'translateX(-50%) scale(1)',
-        width: 'calc(100% - 28px)', maxWidth: '402px', zIndex: 998,
-        borderRadius: '14px', padding: '10px 16px',
-        boxShadow: isPaused
-          ? '0 6px 22px rgba(245,158,11,0.35)'
-          : '0 6px 22px rgba(59,130,246,0.35)',
-      }}
-    >
-      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Clock size={15} color="#fff" />
+    <div onClick={() => navigate('/timer')} style={{
+      ...sharedStyle,
+      position: 'fixed',
+      bottom: 'calc(58px + env(safe-area-inset-bottom, 0px) + 8px)',
+      left: '50%', transform: 'translateX(-50%)',
+      width: 'calc(100% - 24px)', maxWidth: 406, zIndex: 998,
+      borderRadius: 14, padding: '10px 16px',
+    }}>
+      <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Clock size={14} color="#fff" />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ margin: 0, fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>
+        <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>
           {isPaused ? 'หยุดชั่วขณะ' : 'กำลังจับเวลา'}
         </p>
-        <p style={{ margin: '1px 0 0', fontSize: '13px', fontWeight: '700', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ margin: '1px 0 0', fontSize: 13, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {task?.title || 'ไม่ทราบชื่อ'}
         </p>
       </div>
-      <span style={{ fontSize: '16px', fontWeight: '800', color: '#fff', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+      <span style={{ fontSize: 16, fontWeight: 800, color: '#fff', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
         {fmt(elapsed)}
       </span>
-      {isPaused && <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>⏸</span>}
+      {isPaused && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>⏸</span>}
     </div>
   );
 }
@@ -199,76 +149,71 @@ function Layout() {
             background: t.sidebar, borderBottom: `1px solid ${t.sidebarBorder}`,
             padding: '14px 32px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            flexShrink: 0,
           }}>
             <PageTitle />
             <div style={{
               width: 36, height: 36, borderRadius: '50%',
-              background: t.accentGrad2,
+              background: t.accentGrad2, color: '#fff',
+              fontWeight: 800, fontSize: 14,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontWeight: '800', fontSize: '14px',
               boxShadow: t.glowBlue,
             }}>S</div>
           </div>
 
-          {/* Scrollable content */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '28px' }} className="scroll-smooth">
+          {/* Content */}
+          <div className="scroll-y" style={{ flex: 1, padding: 28 }}>
             <div style={{
-              maxWidth: '900px', margin: '0 auto',
-              background: t.card, borderRadius: '20px',
+              maxWidth: 900, margin: '0 auto',
+              background: t.card, borderRadius: 20,
               border: `1px solid ${t.border}`,
               boxShadow: '0 2px 30px rgba(0,0,0,0.35)',
               minHeight: 'calc(100vh - 100px)',
               overflow: 'hidden',
             }}>
-              <AnimatedRoutes />
+              <PageRoutes />
             </div>
           </div>
         </div>
-        <TimerWidget isDesktop={true} />
+        <TimerWidget isDesktop />
       </div>
     );
   }
 
-  // ── Mobile ─────────────────────────────────────────────────
+  // Mobile
   return (
-    <div style={{
-      minHeight: '100vh', background: t.bg,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
+    <div style={{ minHeight: '100vh', background: t.bg }}>
       <div style={{
-        width: '100%', maxWidth: '430px', minHeight: '100vh',
-        background: t.bg, position: 'relative',
+        width: '100%', maxWidth: 430, minHeight: '100vh',
+        margin: '0 auto', background: t.bg,
         display: 'flex', flexDirection: 'column',
       }}>
-        {/* Mobile header */}
+        {/* Header */}
         <div style={{
           background: t.sidebar,
-          padding: `${10 + 'px'} 20px 10px`,
-          paddingTop: 'max(10px, env(safe-area-inset-top, 10px))',
-          display: 'flex', alignItems: 'center', gap: '10px',
+          paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
+          padding: '12px 20px',
+          display: 'flex', alignItems: 'center', gap: 10,
           borderBottom: `1px solid ${t.sidebarBorder}`,
           flexShrink: 0,
         }}>
           <div style={{
-            width: 34, height: 34, borderRadius: '10px',
-            background: t.accentGrad2,
+            width: 34, height: 34, borderRadius: 10,
+            background: t.accentGrad2, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: t.glowBlue,
           }}>
-            <span style={{ fontSize: '16px' }}>📚</span>
+            <span style={{ fontSize: 16 }}>📚</span>
           </div>
           <div>
-            <h2 style={{ color: t.text, fontSize: '15px', fontWeight: '800', margin: 0 }}>Student Planner</h2>
-            <p style={{ color: t.textMuted, fontSize: '10px', margin: 0 }}>วางแผนการเรียนอัจฉริยะ</p>
+            <h2 style={{ color: t.text, fontSize: 15, fontWeight: 700, margin: 0 }}>Student Planner</h2>
+            <p style={{ color: t.textMuted, fontSize: 10, margin: 0 }}>วางแผนการเรียนอัจฉริยะ</p>
           </div>
         </div>
 
-        {/* Page content */}
-        <div
-          style={{ flex: 1, overflowY: 'auto' }}
-          className="scroll-smooth"
-        >
-          <AnimatedRoutes />
+        {/* Page */}
+        <div className="scroll-y" style={{ flex: 1 }}>
+          <PageRoutes />
         </div>
 
         <BottomNav />
@@ -278,7 +223,7 @@ function Layout() {
   );
 }
 
-// ── Page title ───────────────────────────────────────────────
+// ── Page title (desktop topbar) ──────────────────────────────
 function PageTitle() {
   const location = useLocation();
   const titles = {
@@ -293,10 +238,10 @@ function PageTitle() {
   };
   return (
     <div>
-      <h1 style={{ fontSize: '18px', fontWeight: '700', color: t.text, margin: 0, letterSpacing: '-0.2px' }}>
+      <h1 style={{ fontSize: 18, fontWeight: 700, color: t.text, margin: 0 }}>
         {titles[location.pathname] || 'Student Planner'}
       </h1>
-      <p style={{ fontSize: '12px', color: t.textMuted, margin: '2px 0 0' }}>
+      <p style={{ fontSize: 12, color: t.textMuted, margin: '2px 0 0' }}>
         {new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
       </p>
     </div>
