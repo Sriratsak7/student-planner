@@ -3,6 +3,8 @@ import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Play, CheckCircle2, Star, Timer, X, Clock, AlertTriangle, Flame, Zap, Lightbulb } from 'lucide-react';
 import { t } from '../utils/theme';
+import { BottomSheet, IOSButton, AnimatedList } from '../components/Motion';
+import { spring, easeIOS, dur } from '../utils/motion';
 
 const priorityColor = { high: t.danger, medium: t.warning, low: t.success };
 const priorityLabel = { high: 'สูง', medium: 'กลาง', low: 'ต่ำ' };
@@ -48,49 +50,37 @@ function CompleteModal({ task, onConfirm, onCancel }) {
   const timeOptions = [0.25, 0.5, 1, 1.5, 2, 3, 4, 5];
 
   return (
-    <>
-      <div onClick={onCancel} style={{
-        position: 'fixed', inset: 0, background: t.overlay,
-        zIndex: 200, backdropFilter: 'blur(2px)'
-      }} />
-      <div style={{
-        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: '430px',
-        background: t.card, borderRadius: '24px 24px 0 0',
-        padding: '24px 20px 40px', zIndex: 201,
-        boxShadow: '0 -8px 30px rgba(0,0,0,0.4)'
-      }}>
-        <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: t.border, margin: '0 auto 20px' }} />
-
+    <BottomSheet show onClose={onCancel}>
+      <div style={{ padding: '8px 20px 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '17px', fontWeight: '800', color: t.text, margin: '0 0 4px' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: '700', color: t.text, margin: '0 0 4px' }}>
               บันทึกเวลาที่ใช้จริง
             </h3>
             <p style={{ fontSize: '13px', color: t.textMuted, margin: 0 }}>{task.title}</p>
           </div>
           <button onClick={onCancel} style={{
             background: t.cardLight, border: 'none', borderRadius: '50%',
-            width: '32px', height: '32px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
+            width: 32, height: 32, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: `transform ${dur.fast}ms ${spring}`,
+          }}
+            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.88)'}
+            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
             <X size={16} color={t.textSec} />
           </button>
         </div>
 
         <div style={{
           background: t.accentBg, borderRadius: '10px', padding: '10px 14px',
-          display: 'flex', justifyContent: 'space-between', marginBottom: '16px'
+          display: 'flex', justifyContent: 'space-between', marginBottom: '16px',
         }}>
           <span style={{ fontSize: '13px', color: t.accentLight }}>เวลาที่ประมาณไว้</span>
-          <span style={{ fontSize: '13px', fontWeight: '700', color: t.accentLight }}>
-            {task.estimatedTime} ชั่วโมง
-          </span>
+          <span style={{ fontSize: '13px', fontWeight: '700', color: t.accentLight }}>{task.estimatedTime} ชั่วโมง</span>
         </div>
 
-        <p style={{ fontSize: '13px', fontWeight: '700', color: t.text, marginBottom: '10px' }}>
-          ใช้เวลาจริงกี่ชั่วโมง?
-        </p>
+        <p style={{ fontSize: '13px', fontWeight: '700', color: t.text, marginBottom: '10px' }}>ใช้เวลาจริงกี่ชั่วโมง?</p>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
           {timeOptions.map(tm => (
             <button key={tm} onClick={() => setHours(tm)} style={{
@@ -138,51 +128,32 @@ function CompleteModal({ task, onConfirm, onCancel }) {
           </div>
         )}
 
-        <button
-          onClick={() => hours > 0 && onConfirm(hours)}
+        <IOSButton
+          variant="success" fullWidth size="lg"
           disabled={hours <= 0}
-          style={{
-            width: '100%', padding: '14px', borderRadius: '14px', border: 'none',
-            background: hours > 0 ? `linear-gradient(135deg, ${t.success}, #4ade80)` : t.disabled,
-            color: '#fff', fontSize: '15px', fontWeight: '700',
-            cursor: hours > 0 ? 'pointer' : 'not-allowed',
-            boxShadow: hours > 0 ? '0 4px 12px rgba(34,197,94,0.3)' : 'none'
-          }}>
+          onClick={() => hours > 0 && onConfirm(hours)}
+        >
           บันทึกและทำเครื่องหมายเสร็จแล้ว
-        </button>
+        </IOSButton>
       </div>
-    </>
+    </BottomSheet>
   );
 }
 
 function DeleteModal({ task, onConfirm, onCancel }) {
   return (
-    <>
-      <div onClick={onCancel} style={{
-        position: 'fixed', inset: 0, background: t.overlay,
-        zIndex: 200, backdropFilter: 'blur(2px)'
-      }} />
-      <div style={{
-        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: '430px',
-        background: t.card, borderRadius: '24px 24px 0 0',
-        padding: '24px 20px 40px', zIndex: 201
-      }}>
-        <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: t.border, margin: '0 auto 20px' }} />
-        <h3 style={{ fontSize: '17px', fontWeight: '800', color: t.text, margin: '0 0 8px' }}>ลบงานนี้?</h3>
-        <p style={{ fontSize: '14px', color: t.textMuted, margin: '0 0 24px' }}>"{task.title}" จะถูกลบออกถาวร</p>
+    <BottomSheet show onClose={onCancel}>
+      <div style={{ padding: '8px 20px 0' }}>
+        <h3 style={{ fontSize: '17px', fontWeight: '700', color: t.text, margin: '0 0 8px' }}>ลบงานนี้?</h3>
+        <p style={{ fontSize: '14px', color: t.textMuted, margin: '0 0 24px' }}>
+          "{task.title}" จะถูกลบออกถาวร
+        </p>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={onCancel} style={{
-            flex: 1, padding: '13px', borderRadius: '12px', border: `2px solid ${t.border}`,
-            background: t.card, color: t.textSec, cursor: 'pointer', fontWeight: '600', fontSize: '14px'
-          }}>ยกเลิก</button>
-          <button onClick={onConfirm} style={{
-            flex: 1, padding: '13px', borderRadius: '12px', border: 'none',
-            background: t.danger, color: '#fff', cursor: 'pointer', fontWeight: '700', fontSize: '14px'
-          }}>ลบเลย</button>
+          <IOSButton variant="secondary" fullWidth onClick={onCancel}>ยกเลิก</IOSButton>
+          <IOSButton variant="danger"    fullWidth onClick={onConfirm}>ลบเลย</IOSButton>
         </div>
       </div>
-    </>
+    </BottomSheet>
   );
 }
 
@@ -247,14 +218,24 @@ export default function TaskPriority() {
         const isOverdue = days < 0 && task.status === 'pending';
         const isUrgent = days <= 1 && task.status === 'pending';
         const reasons = task.status === 'pending' ? getPriorityReason(task, i) : [];
+        const [cardPressed, setCardPressed] = useState(false);
 
         return (
-          <div key={task.id} style={{
-            background: task.status === 'completed' ? t.cardLight : t.card,
-            border: `1.5px solid ${isOverdue ? t.dangerBorder : isUrgent ? t.warningBorder : t.border}`,
-            borderRadius: '14px', padding: '14px', marginBottom: '10px',
-            opacity: task.status === 'completed' ? 0.6 : 1
-          }}>
+          <div key={task.id}
+            onMouseDown={() => setCardPressed(true)}
+            onMouseUp={() => setCardPressed(false)}
+            onMouseLeave={() => setCardPressed(false)}
+            onTouchStart={() => setCardPressed(true)}
+            onTouchEnd={() => setCardPressed(false)}
+            style={{
+              background: task.status === 'completed' ? t.cardLight : t.card,
+              border: `1.5px solid ${isOverdue ? t.dangerBorder : isUrgent ? t.warningBorder : t.border}`,
+              borderRadius: '14px', padding: '14px', marginBottom: '10px',
+              opacity: task.status === 'completed' ? 0.6 : 1,
+              transition: `transform ${dur.fast}ms ${spring}, box-shadow ${dur.fast}ms ${easeIOS}`,
+              transform: cardPressed ? 'scale(0.985)' : 'scale(1)',
+              boxShadow: cardPressed ? 'none' : '0 2px 8px rgba(0,0,0,0.15)',
+            }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
               {task.status === 'pending' && (
                 <div style={{
